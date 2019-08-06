@@ -1,6 +1,6 @@
 IcaLed
 ---------
-Display an ICAL calendar from a WordPress plugins on a scrolling 8x8 Led Display
+Display an ICAL calendar from a WordPress plugins on a scrolling 8x8 Led Display  
 This project is a fork of [labsud/icaLed](https://github.com/labsud/icaLed).
 ![IcaLED image](icaled.jpg)
 # Bills of Materials
