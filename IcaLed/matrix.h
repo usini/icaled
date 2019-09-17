@@ -1,4 +1,4 @@
-/* 
+/*
   Mini Matrix Manager
   By Rémi Sarrailh <@m4dnerd>
   UTF8 to Extended Ascii : https://playground.arduino.cc/Main/Utf8ascii/
@@ -10,7 +10,7 @@
 #include <Ticker.h> //Parralel Manager
 
 Ticker matrixManager;
-#define BUF_SIZE  1024 // Buffer for char array 
+#define BUF_SIZE  1024 // Buffer for char array
 #define CHAR_LIMIT 5048 // Characters limit for char array
 char curMessage[BUF_SIZE];
 char newMessage[BUF_SIZE];
@@ -61,11 +61,11 @@ byte utf8ascii(byte ascii) {
   byte last = c1;   // get last char
   c1 = ascii;       // remember actual character
   switch (last)     // conversion depending on first UTF8-character
-  { case 0xC2: return  (ascii);  break;
+  {
+    case 0xC2: return  (ascii);  break;
     case 0xC3: return  (ascii | 0xC0);  break;
     case 0x82: if (ascii == 0xAC) return (0x80);   // special case Euro-symbol
   }
-
   return  (0);                                     // otherwise: return zero, if character has to be ignored
 }
 

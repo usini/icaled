@@ -12,8 +12,8 @@ HTTPClient https;
 std::unique_ptr<BearSSL::WiFiClientSecure>client(new BearSSL::WiFiClientSecure);
 unsigned long lastConnectionTime = 0;                  // last time you connected to the server, in milliseconds
 #define NBREVENTS 30       // Maximum events stored
-#define EVENTTEXTSIZE 80   // Size of text description of event    "'Initiation a la decoupe laser'
-#define EVENTDATESIZE 50   // Size of date part of event + spaces. " le Vendredi 31 Septembre 18h15->20h00          "
+#define EVENTTEXTSIZE 120   // Size of text description of event    "'Initiation a la decoupe laser'
+#define EVENTDATESIZE 120   // Size of date part of event + spaces. " le Vendredi 31 Septembre 18h15->20h00          "
 #define HEADERSIZE 50      // Banner (introductory text)
 #define FOOTERSIZE 50
 
@@ -49,7 +49,7 @@ void connectWifi() {
 boolean httpRequest() {
     Serial.println("Connecting to host");
     Serial.print("[HTTPS] begin...\n");
-    
+
     // if there's a successful connection:
     if (https.begin(*client, url)) {
       Serial.println("Requesting URL");
@@ -65,7 +65,7 @@ boolean httpRequest() {
           // HTTP header has been send and Server response header has been handled
           Serial.printf("[HTTPS] GET... code: %d\n", httpCode);
       if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
-        
+
         //The page is empty, we want the file which is downloaded
         int len = https.getSize();
         Serial.println(len);
@@ -88,7 +88,11 @@ boolean httpRequest() {
     } else {
       // if you couldn't make a connection:
       Serial.printf("[HTTPS] GET... code: %d\n", httpCode);
-      Serial.println("Connection failed Invalid Request");
+      if(httpCode == -11){
+        Serial.println("Time out! Request was too long...");
+      } else {
+        Serial.println("Connection failed Invalid Request");
+      }
       https.end();
       return false;
     }
@@ -294,14 +298,14 @@ void parseResponse() {
       else {
         // Asssemble data for one event
         sprintf (oneEvent, "%s le %s %d %s %02dh%02d->%02dh%02d            ",
-                 dEvent[i],
-                 dayNames[weekday(bEvent[i]) - 1],
-                 day(bEvent[i]),
-                 monthNames[month(bEvent[i]) - 1],
-                 hour(bEvent[i]),
-                 minute(bEvent[i]),
-                 hour(eEvent[i]),
-                 minute(eEvent[i]));
+                dEvent[i],
+                dayNames[weekday(bEvent[i]) - 1],
+                day(bEvent[i]),
+                monthNames[month(bEvent[i]) - 1],
+                hour(bEvent[i]),
+                minute(bEvent[i]),
+                hour(eEvent[i]),
+                minute(eEvent[i]));
         // and concat to all evets string
         strcat (allEvents, oneEvent);
       }
@@ -312,12 +316,11 @@ void parseResponse() {
     // And display them
     Serial.println(allEvents);
     Serial.println("");
-    // Prepare the character array (the buffer) 
+    // Prepare the character array (the buffer)
     //char char_array[allEventsSize];
     // Copy it over
     //allEvents.toCharArray(char_array, allEventsSize);
     //char char_array_ascii[allEventsSize];
-    matrixText(allEvents);
   }
   else {
     nbrEvents = 0;

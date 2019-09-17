@@ -18,21 +18,42 @@ Libraries used
 #include "matrix.h"
 #include "wifi.h"
 #include "ntp.h"
+#include <FS.h>
 
 void setup() {
 
   Serial.begin(74880); // Default Baudrate for ESP8266 https://www.esp8266.com/viewtopic.php?t=12635
   Serial.println("");
+  Serial.print("https://github.com/usini/icaled - ");
+  Serial.println(VERSION);
+
+  //https://circuits4you.com/2018/01/31/example-of-esp8266-flash-file-system-spiffs/
+  SPIFFS.begin();
+  bool calendar_exists = SPIFFS.exists("calendar.txt");
+  if(calendar_exists){
+    Serial.println("Display calendar from memory");
+    File fileRead = SPIFFS.open("calendar.txt", "r");
+
+    while(fileRead.available()){
+      for(int i=0; i <fileRead.size();i++){
+        allEvents[i] = (char)fileRead.read();
+      }
+    }
+    fileRead.close();
+    matrixText(allEvents);
+  } else {
+    matrixText("First Start!");
+  }
 
   //Matrix
   initMatrix();
-  matrixText("WiFi");
+  //matrixText("WiFi");
 
   // Connect to WiFi
   connectWifi();
 
   //Start NTP client (to get time)
-  matrixText("Temps");
+  //matrixText("Temps");
   startNTP();
   Serial.println("Syncing Time");
 
@@ -44,17 +65,29 @@ void setup() {
   Serial.println("Time synced...");
   Serial.println(now());
 
-  //Get Calendar 
-  matrixText("Calendrier");
-  if (httpRequest()) {
-    Serial.println("Parsing...");
-    parseResponse();
-    Serial.println("Response parsed");
+  //Get Calendar
+  //matrixText("Calendrier");
+
+  //Retry http request until it works (avoid timeout issue)
+  while(true) {
+    if(httpRequest()){
+      break;
+    }
+  }
+
+  Serial.println("Parsing...");
+  parseResponse();
+  Serial.println("Response parsed");
+  matrixText(allEvents);
+
+  File fileWrite = SPIFFS.open("calendar.txt", "w");
+  if(fileWrite){
+    fileWrite.write(utf8ascii(allEvents), sizeof(allEvents));
   }
 
   //Request finish, we don't need Wi-Fi anymore
-  WiFi.mode(WIFI_OFF);
-  WiFi.forceSleepBegin();
+  //WiFi.mode(WIFI_OFF);
+  //WiFi.forceSleepBegin();
 }
 
 void loop() {
